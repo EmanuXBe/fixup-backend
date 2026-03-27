@@ -1,6 +1,10 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../database/database.js';
 
+/**
+ * Modelo de Servicio.
+ * Representa los diferentes tipos de remodelaciones disponibles para contratar.
+ */
 const Servicio = sequelize.define('Servicio', {
     id: {
         type: DataTypes.INTEGER,
@@ -9,16 +13,16 @@ const Servicio = sequelize.define('Servicio', {
     },
     nombre: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false, // Nombre del servicio (ej. 'Pintura Interior')
     },
     descripcion: {
-        type: DataTypes.TEXT,
+        type: DataTypes.TEXT, // Descripción detallada de lo que incluye el servicio
     },
     imagenUrl: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING, // URL de la imagen que representa el servicio
     },
     categoria: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING, // Categoría del servicio (ej. 'Baño', 'Cocina')
     },
 }, {
     timestamps: false,
