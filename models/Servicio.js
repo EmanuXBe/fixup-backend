@@ -18,8 +18,9 @@ const Servicio = sequelize.define('Servicio', {
     descripcion: {
         type: DataTypes.TEXT, // Descripción detallada de lo que incluye el servicio
     },
-    imagenUrl: {
+    image_url: {
         type: DataTypes.STRING, // URL de la imagen que representa el servicio
+        field: 'image_url',
     },
     categoria: {
         type: DataTypes.STRING, // Categoría del servicio (ej. 'Baño', 'Cocina')

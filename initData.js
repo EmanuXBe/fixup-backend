@@ -8,11 +8,11 @@ const initialUsers = [
 ];
 
 const initialServicios = [
-    { nombre: 'Remodelación de Cocina', descripcion: 'Renovación completa de gabinetes, encimeras e iluminación.', imagenUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', categoria: 'Cocina' },
-    { nombre: 'Pintura Interior', descripcion: 'Servicio profesional de pintura para todas las habitaciones.', imagenUrl: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800', categoria: 'Paredes' },
-    { nombre: 'Instalación de Pisos', descripcion: 'Instalación de madera, laminado o porcelanato.', imagenUrl: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?w=800', categoria: 'Pisos' },
-    { nombre: 'Remodelación de Baño', descripcion: 'Actualización de sanitarios, azulejos y grifería.', imagenUrl: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800', categoria: 'Baño' },
-    { nombre: 'Electricidad General', descripcion: 'Revisión y actualización de sistemas eléctricos.', imagenUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800', categoria: 'Instalaciones' },
+    { nombre: 'Remodelación de Cocina', descripcion: 'Renovación completa de gabinetes, encimeras e iluminación.', image_url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', categoria: 'Cocina' },
+    { nombre: 'Pintura Interior', descripcion: 'Servicio profesional de pintura para todas las habitaciones.', image_url: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800', categoria: 'Paredes' },
+    { nombre: 'Instalación de Pisos', descripcion: 'Instalación de madera, laminado o porcelanato.', image_url: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?w=800', categoria: 'Pisos' },
+    { nombre: 'Remodelación de Baño', descripcion: 'Actualización de sanitarios, azulejos y grifería.', image_url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800', categoria: 'Baño' },
+    { nombre: 'Electricidad General', descripcion: 'Revisión y actualización de sistemas eléctricos.', image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800', categoria: 'Instalaciones' },
 ];
 
 export const loadInitialData = async () => {

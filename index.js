@@ -16,8 +16,8 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/users', userRoutes);
-app.use('/servicios', servicioRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/servicios', servicioRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 // Database Sync and Server Start

@@ -30,12 +30,12 @@ export const getServicioById = async (req, res) => {
 
 /**
  * Crea un nuevo servicio.
- * Recibe: nombre, descripcion, imagenUrl (URL de Firebase Storage), categoria.
- * El frontend se encarga de subir la imagen a Firebase y envía la URL resultante.
+ * Recibe: nombre, descripcion, image_url (URL de Firebase Storage), categoria.
+ * El frontend sube la imagen a Firebase y envía la URL resultante.
  */
 export const createServicio = async (req, res) => {
     try {
-        const { nombre, descripcion, imagenUrl, categoria } = req.body;
+        const { nombre, descripcion, image_url, categoria } = req.body;
 
         if (!nombre) {
             return res.status(400).json({ message: 'El campo nombre es obligatorio' });
@@ -44,7 +44,7 @@ export const createServicio = async (req, res) => {
         const nuevoServicio = await Servicio.create({
             nombre,
             descripcion: descripcion ?? null,
-            imagenUrl: imagenUrl ?? null,
+            image_url: image_url ?? null,
             categoria: categoria ?? null,
         });
 
