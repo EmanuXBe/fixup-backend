@@ -35,13 +35,8 @@ export const createReview = async (req, res) => {
 export const getReviewsByService = async (req, res) => {
     try {
         const { serviceId } = req.params;
-
-        const reviews = await Review.findAll({
-            where: { service_id: serviceId },
-            include: [{ model: User, attributes: ['id', 'username', 'email'] }],
-        });
-
-        res.json(reviews);
+        const reviews = await Review.findAll({ where: { serviceId } });
+        res.status(200).json(reviews);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
