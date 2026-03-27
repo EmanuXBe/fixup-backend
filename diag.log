@@ -1,0 +1,73 @@
+node : node:internal/mo
+dules/package_json_read
+er:301
+En l?nea: 1 Car?cter: 1
++ node index.js 2>&1 | 
+Out-File -FilePath 
+diag.log -Encoding 
+ascii
++ ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (node:internal   
+ /m...json_reader:3    
+01:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  throw new ERR_MODULE_
+NOT_FOUND(packageName, 
+fileURLToPath(base), 
+null);
+        ^
+
+Error [ERR_MODULE_NOT_F
+OUND]: Cannot find 
+package 'sequelize' 
+imported from C:\Users\
+lymor\StudioProjects\fi
+xup-backend\database\da
+tabase.js
+    at Object.getPackag
+eJSONURL (node:internal
+/modules/package_json_r
+eader:301:9)
+    at packageResolve (
+node:internal/modules/e
+sm/resolve:768:81)
+    at moduleResolve (n
+ode:internal/modules/es
+m/resolve:859:18)
+    at defaultResolve (
+node:internal/modules/e
+sm/resolve:991:11)
+    at 
+#cachedDefaultResolve (
+node:internal/modules/e
+sm/loader:719:20)
+    at #resolveAndMaybe
+BlockOnLoaderThread (no
+de:internal/modules/esm
+/loader:736:38)
+    at ModuleLoader.res
+olveSync (node:internal
+/modules/esm/loader:765
+:52)
+    at #resolve (node:i
+nternal/modules/esm/loa
+der:701:17)
+    at ModuleLoader.get
+OrCreateModuleJob (node
+:internal/modules/esm/l
+oader:621:35)
+    at 
+ModuleJob.syncLink (nod
+e:internal/modules/esm/
+module_job:160:33) {
+  code: 
+'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.14.1
