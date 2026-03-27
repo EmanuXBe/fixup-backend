@@ -19,7 +19,8 @@ const seedDatabase = async () => {
         title VARCHAR(200) NOT NULL,
         description TEXT,
         price NUMERIC(10, 2) NOT NULL,
-        location VARCHAR(100)
+        location VARCHAR(100),
+        image_url VARCHAR(500)
       );
 
       CREATE TABLE reviews (
@@ -41,10 +42,10 @@ const seedDatabase = async () => {
 
         // 3. Insertar Inmuebles
         await pool.query(`
-      INSERT INTO properties (title, description, price, location) VALUES 
-      ('Apartamento Moderno', 'Hermoso apto con vista a la ciudad', 2500000.00, 'Chapinero'),
-      ('Casa Familiar', 'Amplia casa de 3 habitaciones', 4200000.00, 'Usaquén'),
-      ('Apartaestudio Estudiantil', 'Ideal para estudiantes, cerca a universidades', 1500000.00, 'Teusaquillo');
+      INSERT INTO properties (title, description, price, location, image_url) VALUES 
+      ('Apartamento Moderno', 'Hermoso apto con vista a la ciudad', 2500000.00, 'Chapinero', 'https://firebasestorage.googleapis.com/placeholder/apartamento.jpg'),
+      ('Casa Familiar', 'Amplia casa de 3 habitaciones', 4200000.00, 'Usaquén', 'https://firebasestorage.googleapis.com/placeholder/casa.jpg'),
+      ('Apartaestudio Estudiantil', 'Ideal para estudiantes, cerca a universidades', 1500000.00, 'Teusaquillo', NULL);
     `);
 
         // 4. Insertar Reseñas

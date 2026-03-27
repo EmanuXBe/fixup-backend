@@ -17,7 +17,29 @@ app.get('/api/items', async (req, res) => {
     }
 });
 
-// Endpoint 2: Traer el detalle de un artículo por ID
+// Endpoint 2: Crear un nuevo inmueble
+app.post('/api/items', async (req, res) => {
+    try {
+        const { title, description, price, location, image_url } = req.body;
+
+        if (!title || !price) {
+            return res.status(400).json({ error: 'Los campos title y price son obligatorios' });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO properties (title, description, price, location, image_url)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING *`,
+            [title, description, price, location, image_url ?? null]
+        );
+
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Endpoint 3: Traer el detalle de un artículo por ID
 app.get('/api/items/:id', async (req, res) => {
     try {
         const { id } = req.params;
