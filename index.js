@@ -6,6 +6,7 @@ import { loadInitialData } from './initData.js';
 
 import userRoutes from './routes/userRoutes.js';
 import servicioRoutes from './routes/servicioRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,7 @@ app.use(express.json());
 // Routes
 app.use('/users', userRoutes);
 app.use('/servicios', servicioRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Database Sync and Server Start
 const startServer = async () => {
