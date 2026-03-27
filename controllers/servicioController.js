@@ -2,8 +2,6 @@ import Servicio from '../models/Servicio.js';
 
 /**
  * Obtiene la lista completa de todos los servicios disponibles.
- * @param {Object} req - Objeto de solicitud de Express.
- * @param {Object} res - Objeto de respuesta de Express.
  */
 export const getServicios = async (req, res) => {
     try {
@@ -16,8 +14,6 @@ export const getServicios = async (req, res) => {
 
 /**
  * Busca un servicio específico mediante su ID.
- * @param {Object} req - Objeto de solicitud de Express con el parámetro ID.
- * @param {Object} res - Objeto de respuesta de Express.
  */
 export const getServicioById = async (req, res) => {
     try {
@@ -31,3 +27,30 @@ export const getServicioById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * Crea un nuevo servicio.
+ * Recibe: nombre, descripcion, imagenUrl (URL de Firebase Storage), categoria.
+ * El frontend se encarga de subir la imagen a Firebase y envía la URL resultante.
+ */
+export const createServicio = async (req, res) => {
+    try {
+        const { nombre, descripcion, imagenUrl, categoria } = req.body;
+
+        if (!nombre) {
+            return res.status(400).json({ message: 'El campo nombre es obligatorio' });
+        }
+
+        const nuevoServicio = await Servicio.create({
+            nombre,
+            descripcion: descripcion ?? null,
+            imagenUrl: imagenUrl ?? null,
+            categoria: categoria ?? null,
+        });
+
+        res.status(201).json(nuevoServicio);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
