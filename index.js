@@ -5,7 +5,7 @@ import setRelations from './models/relations.js';
 import { loadInitialData } from './initData.js';
 
 import userRoutes from './routes/userRoutes.js';
-import servicioRoutes from './routes/servicioRoutes.js';
+import serviceRoutes from './routes/serviceRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 
 const app = express();
@@ -17,27 +17,24 @@ app.use(express.json());
 
 // Routes
 app.use('/api/users', userRoutes);
-app.use('/api/servicios', servicioRoutes);
+app.use('/api/services', serviceRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 // Database Sync and Server Start
 const startServer = async () => {
     try {
-        // Establecer relaciones
         setRelations();
 
-        // Sincronizar base de datos (force: true para desarrollo inicial)
         await sequelize.sync({ force: true });
-        console.log('Base de datos sincronizada.');
+        console.log('Database synchronized.');
 
-        // Carga de datos iniciales
         await loadInitialData();
 
         app.listen(PORT, () => {
-            console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+            console.log(`🚀 Server running at http://localhost:${PORT}`);
         });
     } catch (error) {
-        console.error('Error al iniciar el servidor:', error);
+        console.error('Error starting server:', error);
     }
 };
 

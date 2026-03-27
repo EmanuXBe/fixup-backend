@@ -1,56 +1,43 @@
 import Review from '../models/Review.js';
 import User from '../models/User.js';
-import Servicio from '../models/Servicio.js';
+import Service from '../models/Service.js';
 
 /**
- * 1. Crear un nuevo review.
- * Body: { calificacion, comentario, userId, articleId }
- * El body acepta los alias del enunciado (rating → calificacion, user_id → userId, servicio_id → articleId).
+ * POST /api/reviews — Create a new review.
+ * Body: { rating, comment, user_id, service_id }
  */
 export const createReview = async (req, res) => {
     try {
-        const {
-            rating, calificacion,
-            comment, comentario,
-            user_id, userId,
-            servicio_id, articleId,
-        } = req.body;
+        const { rating, comment, user_id, service_id } = req.body;
 
-        // Soporte para ambos nombres de campo (del enunciado y del modelo)
-        const finalCalificacion = calificacion ?? rating;
-        const finalComentario   = comentario   ?? comment   ?? null;
-        const finalUserId       = userId       ?? user_id;
-        const finalArticleId    = articleId    ?? servicio_id;
-
-        if (finalCalificacion == null || !finalUserId || !finalArticleId) {
+        if (rating == null || !user_id || !service_id) {
             return res.status(400).json({
-                message: 'Los campos calificacion, user_id y servicio_id son obligatorios',
+                message: 'Fields rating, user_id and service_id are required',
             });
         }
 
-        const nuevoReview = await Review.create({
-            calificacion: finalCalificacion,
-            comentario:   finalComentario,
-            userId:       finalUserId,
-            articleId:    finalArticleId,
+        const newReview = await Review.create({
+            rating,
+            comment: comment ?? null,
+            user_id,
+            service_id,
         });
 
-        res.status(201).json(nuevoReview);
+        res.status(201).json(newReview);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 /**
- * 2. Obtener todos los reviews de un servicio específico.
- * GET /api/reviews/servicio/:servicioId
+ * GET /api/reviews/service/:serviceId — Get all reviews for a service.
  */
-export const getReviewsByServicio = async (req, res) => {
+export const getReviewsByService = async (req, res) => {
     try {
-        const { servicioId } = req.params;
+        const { serviceId } = req.params;
 
         const reviews = await Review.findAll({
-            where: { articleId: servicioId },
+            where: { service_id: serviceId },
             include: [{ model: User, attributes: ['id', 'username', 'email'] }],
         });
 
@@ -61,16 +48,15 @@ export const getReviewsByServicio = async (req, res) => {
 };
 
 /**
- * 3. Obtener todos los reviews hechos por un usuario específico.
- * GET /api/reviews/user/:userId
+ * GET /api/reviews/user/:userId — Get all reviews by a user.
  */
 export const getReviewsByUser = async (req, res) => {
     try {
         const { userId } = req.params;
 
         const reviews = await Review.findAll({
-            where: { userId },
-            include: [{ model: Servicio, attributes: ['id', 'nombre', 'categoria'] }],
+            where: { user_id: userId },
+            include: [{ model: Service, attributes: ['id', 'title', 'categoria'] }],
         });
 
         res.json(reviews);
@@ -80,23 +66,22 @@ export const getReviewsByUser = async (req, res) => {
 };
 
 /**
- * 4. Actualizar un review por su ID.
- * PUT /api/reviews/:id
- * Body: { calificacion?, comentario? }
+ * PUT /api/reviews/:id — Update a review by ID.
+ * Body: { rating?, comment? }
  */
 export const updateReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rating, calificacion, comment, comentario } = req.body;
+        const { rating, comment } = req.body;
 
         const review = await Review.findByPk(id);
         if (!review) {
-            return res.status(404).json({ message: 'Review no encontrado' });
+            return res.status(404).json({ message: 'Review not found' });
         }
 
         await review.update({
-            calificacion: calificacion ?? rating   ?? review.calificacion,
-            comentario:   comentario   ?? comment  ?? review.comentario,
+            rating:  rating  ?? review.rating,
+            comment: comment ?? review.comment,
         });
 
         res.json(review);
@@ -106,8 +91,7 @@ export const updateReview = async (req, res) => {
 };
 
 /**
- * 5. Eliminar un review por su ID.
- * DELETE /api/reviews/:id
+ * DELETE /api/reviews/:id — Delete a review by ID.
  */
 export const deleteReview = async (req, res) => {
     try {
@@ -115,11 +99,11 @@ export const deleteReview = async (req, res) => {
 
         const review = await Review.findByPk(id);
         if (!review) {
-            return res.status(404).json({ message: 'Review no encontrado' });
+            return res.status(404).json({ message: 'Review not found' });
         }
 
         await review.destroy();
-        res.json({ message: `Review ${id} eliminado correctamente` });
+        res.json({ message: `Review ${id} deleted successfully` });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

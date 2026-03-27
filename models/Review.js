@@ -2,8 +2,8 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../database/database.js';
 
 /**
- * Modelo de Review.
- * Representa las reseñas hechas por los usuarios sobre los diferentes servicios.
+ * Review Model.
+ * Represents user reviews on services.
  */
 const Review = sequelize.define('Review', {
     id: {
@@ -11,20 +11,20 @@ const Review = sequelize.define('Review', {
         primaryKey: true,
         autoIncrement: true,
     },
-    calificacion: {
+    rating: {
         type: DataTypes.INTEGER,
-        allowNull: false, // La calificación debe ser un entero entre 0 y 5
+        allowNull: false,
         validate: {
             min: 0,
             max: 5,
         },
     },
-    comentario: {
-        type: DataTypes.TEXT, // Comentario opcional sobre el servicio recibido
+    comment: {
+        type: DataTypes.TEXT,
     },
-    fecha: {
+    date: {
         type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW, // Fecha en que se creó la reseña
+        defaultValue: DataTypes.NOW,
     },
 }, {
     timestamps: false,

@@ -1,7 +1,7 @@
 import express from 'express';
 import {
     createReview,
-    getReviewsByServicio,
+    getReviewsByService,
     getReviewsByUser,
     updateReview,
     deleteReview,
@@ -9,19 +9,19 @@ import {
 
 const router = express.Router();
 
-// POST   /api/reviews                          → Crear review
+// POST   /api/reviews
 router.post('/', createReview);
 
-// GET    /api/reviews/servicio/:servicioId     → Reviews de un servicio
-router.get('/servicio/:servicioId', getReviewsByServicio);
+// GET    /api/reviews/service/:serviceId
+router.get('/service/:serviceId', getReviewsByService);
 
-// GET    /api/reviews/user/:userId             → Reviews de un usuario
+// GET    /api/reviews/user/:userId
 router.get('/user/:userId', getReviewsByUser);
 
-// PUT    /api/reviews/:id                      → Actualizar review
+// PUT    /api/reviews/:id
 router.put('/:id', updateReview);
 
-// DELETE /api/reviews/:id                      → Eliminar review
+// DELETE /api/reviews/:id
 router.delete('/:id', deleteReview);
 
 export default router;

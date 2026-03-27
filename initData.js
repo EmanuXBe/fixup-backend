@@ -1,5 +1,5 @@
 import User from './models/User.js';
-import Servicio from './models/Servicio.js';
+import Service from './models/Service.js';
 
 const initialUsers = [
     { username: 'juan_perez', email: 'juan@example.com', password: 'password123' },
@@ -7,29 +7,29 @@ const initialUsers = [
     { username: 'carlos_lopez', email: 'carlos@example.com', password: 'password789' },
 ];
 
-const initialServicios = [
-    { nombre: 'Remodelación de Cocina', descripcion: 'Renovación completa de gabinetes, encimeras e iluminación.', image_url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', categoria: 'Cocina' },
-    { nombre: 'Pintura Interior', descripcion: 'Servicio profesional de pintura para todas las habitaciones.', image_url: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800', categoria: 'Paredes' },
-    { nombre: 'Instalación de Pisos', descripcion: 'Instalación de madera, laminado o porcelanato.', image_url: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?w=800', categoria: 'Pisos' },
-    { nombre: 'Remodelación de Baño', descripcion: 'Actualización de sanitarios, azulejos y grifería.', image_url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800', categoria: 'Baño' },
-    { nombre: 'Electricidad General', descripcion: 'Revisión y actualización de sistemas eléctricos.', image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800', categoria: 'Instalaciones' },
+const initialServices = [
+    { title: 'Kitchen Remodel', description: 'Complete cabinet, countertop and lighting renovation.', image_url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', categoria: 'Kitchen' },
+    { title: 'Interior Painting', description: 'Professional painting service for all rooms.', image_url: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800', categoria: 'Walls' },
+    { title: 'Flooring Installation', description: 'Wood, laminate or tile flooring installation.', image_url: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?w=800', categoria: 'Floors' },
+    { title: 'Bathroom Remodel', description: 'Upgrade of fixtures, tiles and faucets.', image_url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800', categoria: 'Bathroom' },
+    { title: 'General Electrical', description: 'Inspection and upgrade of electrical systems.', image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800', categoria: 'Electrical' },
 ];
 
 export const loadInitialData = async () => {
     try {
         const userCount = await User.count();
-        const servicioCount = await Servicio.count();
+        const serviceCount = await Service.count();
 
         if (userCount === 0) {
             await User.bulkCreate(initialUsers);
-            console.log('Usuarios iniciales cargados.');
+            console.log('Initial users loaded.');
         }
 
-        if (servicioCount === 0) {
-            await Servicio.bulkCreate(initialServicios);
-            console.log('Servicios iniciales cargados.');
+        if (serviceCount === 0) {
+            await Service.bulkCreate(initialServices);
+            console.log('Initial services loaded.');
         }
     } catch (error) {
-        console.error('Error cargando datos iniciales:', error);
+        console.error('Error loading initial data:', error);
     }
 };
