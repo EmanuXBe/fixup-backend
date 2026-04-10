@@ -1,10 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../database/database.js';
 
-/**
- * Service Model.
- * Represents the different types of renovation services available for hire.
- */
 const Service = sequelize.define('Service', {
     id: {
         type: DataTypes.INTEGER,
@@ -28,6 +24,10 @@ const Service = sequelize.define('Service', {
 }, {
     timestamps: false,
     tableName: 'Services',
+    indexes: [
+        // Acelera filtros por categoría en el feed principal
+        { fields: ['categoria'] },
+    ],
 });
 
 export default Service;
