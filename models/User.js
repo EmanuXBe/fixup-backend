@@ -11,18 +11,22 @@ const User = sequelize.define('User', {
         primaryKey: true,
         autoIncrement: true, // ID autoincremental
     },
-    username: {
+    name: {
         type: DataTypes.STRING,
-        allowNull: false, // El nombre de usuario es obligatorio
+        allowNull: false,
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true, // Cada correo debe ser único
+        unique: true,
     },
     password: {
         type: DataTypes.STRING,
-        allowNull: false, // La contraseña es obligatoria
+        allowNull: false,
+    },
+    photo: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
 }, {
     timestamps: false, // Desactiva createdAt y updatedAt
