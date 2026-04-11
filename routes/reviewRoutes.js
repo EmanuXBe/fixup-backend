@@ -2,7 +2,7 @@ import express from 'express';
 import {
     createReview,
     getReviewsByService,
-    getReviewsByUser,
+    getUserReviews,
     updateReview,
     deleteReview,
 } from '../controllers/reviewController.js';
@@ -16,7 +16,7 @@ router.post('/', createReview);
 router.get('/service/:serviceId', getReviewsByService);
 
 // GET    /api/reviews/user/:userId
-router.get('/user/:userId', getReviewsByUser);
+router.get('/user/:userId', getUserReviews);
 
 // PUT    /api/reviews/:id
 router.put('/:id', updateReview);

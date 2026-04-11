@@ -52,10 +52,10 @@ export const getReviewsByService = async (req, res) => {
 };
 
 /**
- * GET /api/reviews/user/:userId — Get all reviews by a user.
- * Includes User (who wrote it) and Service (article details).
+ * GET /api/reviews/user/:userId — Get all reviews for a specific user.
+ * Includes User (id, username, email) and Service (article/service details).
  */
-export const getReviewsByUser = async (req, res) => {
+export const getUserReviews = async (req, res) => {
     try {
         const { userId } = req.params;
 
