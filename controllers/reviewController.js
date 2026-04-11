@@ -2,43 +2,8 @@ import Review from '../models/Review.js';
 import User from '../models/User.js';
 import Service from '../models/Service.js';
 
-// ─── DTOs ────────────────────────────────────────────────────────────────────
-
-const toReviewDTO = (review) => ({
-    id: review.id,
-    rating: review.rating,
-    comment: review.comment ?? null,
-    date: review.date,
-    user_id: review.user_id,
-    service_id: review.service_id,
-});
-
-const toReviewWithAuthorDTO = (review) => ({
-    id: review.id,
-    rating: review.rating,
-    comment: review.comment ?? null,
-    date: review.date,
-    service_id: review.service_id,
-    author: review.User
-        ? { id: review.User.id, name: review.User.name, photo: review.User.photo ?? null }
-        : null,
-});
-
-const toReviewWithServiceDTO = (review) => ({
-    id: review.id,
-    rating: review.rating,
-    comment: review.comment ?? null,
-    date: review.date,
-    user_id: review.user_id,
-    service: review.Service
-        ? { id: review.Service.id, title: review.Service.title }
-        : null,
-});
-
-// ─── Controllers ─────────────────────────────────────────────────────────────
-
 /**
- * POST /api/reviews — Crea un nuevo review.
+ * POST /api/reviews — Create a new review.
  * Body: { rating, comment, user_id, service_id }
  */
 export const createReview = async (req, res) => {
@@ -47,7 +12,7 @@ export const createReview = async (req, res) => {
 
         if (rating == null || !user_id || !service_id) {
             return res.status(400).json({
-                message: 'Los campos rating, user_id y service_id son obligatorios',
+                message: 'Fields rating, user_id and service_id are required',
             });
         }
 
@@ -58,14 +23,14 @@ export const createReview = async (req, res) => {
             service_id,
         });
 
-        res.status(201).json(toReviewDTO(newReview));
+        res.status(201).json(newReview);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 /**
- * GET /api/reviews/service/:serviceId — Comentarios de un artículo con datos del autor.
+ * GET /api/reviews/service/:serviceId — Get all reviews for a service.
  */
 export const getReviewsByService = async (req, res) => {
     try {
@@ -73,17 +38,17 @@ export const getReviewsByService = async (req, res) => {
 
         const reviews = await Review.findAll({
             where: { service_id: serviceId },
-            include: [{ model: User, attributes: ['id', 'name', 'photo'] }],
+            include: [{ model: User, attributes: ['id', 'username', 'email'] }],
         });
 
-        res.json(reviews.map(toReviewWithAuthorDTO));
+        res.json(reviews);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 /**
- * GET /api/reviews/user/:userId — Mis comentarios con datos del artículo comentado.
+ * GET /api/reviews/user/:userId — Get all reviews by a user.
  */
 export const getReviewsByUser = async (req, res) => {
     try {
@@ -91,31 +56,27 @@ export const getReviewsByUser = async (req, res) => {
 
         const reviews = await Review.findAll({
             where: { user_id: userId },
-            include: [{ model: Service, attributes: ['id', 'title'] }],
+            include: [{ model: Service, attributes: ['id', 'title', 'categoria'] }],
         });
 
-        res.json(reviews.map(toReviewWithServiceDTO));
+        res.json(reviews);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 /**
- * PUT /api/reviews/:id — Actualiza rating o comment de un review.
- * Body: { rating?, comment?, userId }  — userId simulado mientras no hay auth real.
+ * PUT /api/reviews/:id — Update a review by ID.
+ * Body: { rating?, comment? }
  */
 export const updateReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rating, comment, userId } = req.body;
+        const { rating, comment } = req.body;
 
         const review = await Review.findByPk(id);
         if (!review) {
-            return res.status(404).json({ message: 'Review no encontrado' });
-        }
-
-        if (review.user_id !== userId) {
-            return res.status(403).json({ message: 'No tienes permisos para modificar este comentario' });
+            return res.status(404).json({ message: 'Review not found' });
         }
 
         await review.update({
@@ -123,32 +84,26 @@ export const updateReview = async (req, res) => {
             comment: comment ?? review.comment,
         });
 
-        res.json(toReviewDTO(review));
+        res.json(review);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 /**
- * DELETE /api/reviews/:id — Elimina un review por ID.
- * Body: { userId }  — userId simulado mientras no hay auth real.
+ * DELETE /api/reviews/:id — Delete a review by ID.
  */
 export const deleteReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { userId } = req.body;
 
         const review = await Review.findByPk(id);
         if (!review) {
-            return res.status(404).json({ message: 'Review no encontrado' });
-        }
-
-        if (review.user_id !== userId) {
-            return res.status(403).json({ message: 'No tienes permisos para modificar este comentario' });
+            return res.status(404).json({ message: 'Review not found' });
         }
 
         await review.destroy();
-        res.json({ message: `Review ${id} eliminado correctamente` });
+        res.json({ message: `Review ${id} deleted successfully` });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

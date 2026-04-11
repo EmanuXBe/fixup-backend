@@ -1,15 +1,18 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../database/database.js';
 
+/**
+ * Review Model.
+ * Represents user reviews on services.
+ */
 const Review = sequelize.define('Review', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
     },
-    // FLOAT garantiza que Android lo reciba como Double, evitando ClassCastException
     rating: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
             min: 0,
@@ -25,12 +28,6 @@ const Review = sequelize.define('Review', {
     },
 }, {
     timestamps: false,
-    indexes: [
-        // Acelera GET /reviews/service/:serviceId
-        { fields: ['service_id'] },
-        // Acelera GET /reviews/user/:userId
-        { fields: ['user_id'] },
-    ],
 });
 
 export default Review;

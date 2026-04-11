@@ -1,43 +1,32 @@
 import User from '../models/User.js';
 
-// ─── DTO ─────────────────────────────────────────────────────────────────────
-
-const toUserDTO = (user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    photo: user.photo ?? null,
-});
-
-// ─── Controllers ─────────────────────────────────────────────────────────────
-
 /**
- * GET /api/users — Lista todos los usuarios sin exponer la contraseña.
+ * Obtiene la lista completa de todos los usuarios registrados.
+ * @param {Object} req - Objeto de solicitud de Express.
+ * @param {Object} res - Objeto de respuesta de Express.
  */
 export const getUsers = async (req, res) => {
     try {
-        const users = await User.findAll({
-            attributes: ['id', 'name', 'email', 'photo'],
-        });
-        res.json(users.map(toUserDTO));
+        const users = await User.findAll();
+        res.json(users);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 /**
- * GET /api/users/:id — Obtiene un usuario por ID sin exponer la contraseña.
+ * Busca un usuario por su ID único.
+ * @param {Object} req - Objeto de solicitud de Express con el parámetro ID.
+ * @param {Object} res - Objeto de respuesta de Express.
  */
 export const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await User.findByPk(id, {
-            attributes: ['id', 'name', 'email', 'photo'],
-        });
+        const user = await User.findByPk(id);
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
-        res.json(toUserDTO(user));
+        res.json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
