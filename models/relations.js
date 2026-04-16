@@ -84,6 +84,7 @@ const setRelations = () => {
     });
 
     Review.belongsTo(User, {
+        as: 'user',
         foreignKey: {
             name: 'user_id',
             type: DataTypes.STRING(128),

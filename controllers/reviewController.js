@@ -99,14 +99,18 @@ const formatReview = (review) => {
         /**
          * Datos del autor de la reseña.
          * Se extraen del include de User en la query.
-         * profileImage puede ser null si el usuario no tiene foto configurada;
-         * el frontend debe manejar ese caso mostrando un avatar genérico.
+         * 
+         * NOTA PARA EL DESARROLLADOR DE ANDROID:
+         * Se ha forzado la exportación bajo la clave "user" (minúscula)
+         * para su correcto mapeo en la app, al igual que los atributos
+         * que se exponen. Al definir "as: 'user'" en la relación y la 
+         * query, evitamos la anidación en la clave con inicial en mayúscula.
          */
-        author: r.User
+        user: r.user
             ? {
-                id:           r.User.id,
-                name:         r.User.username,
-                profileImage: r.User.profileImage || null,
+                id:           r.user.id,
+                name:         r.user.name,
+                profileImage: r.user.profileImage || null,
             }
             : null,
         /**
@@ -257,8 +261,13 @@ export const getReviewsByService = async (req, res) => {
              */
             include: [
                 {
+                    // EAGER LOADING EXPLÍCITO:
+                    // Al incluir el modelo User en la misma query en lugar de consultar
+                    // a posteriori las reseñas, evitamos el problema de consultas N+1.
                     model: User,
-                    attributes: ['id', 'username', 'profileImage'],
+                    as: 'user', // Fuerza que en el JSON Serialize de Sequelize se exponga como 'user' en minúscula
+                    // Renombramos la columna username a name usando el alias de Sequelize
+                    attributes: ['id', ['username', 'name'], 'profileImage'],
                 },
                 {
                     model: Service,
@@ -354,8 +363,12 @@ export const getUserReviews = async (req, res) => {
             where: { user_id: userId },
             include: [
                 {
+                    // EAGER LOADING EXPLÍCITO:
+                    // Al incluir la relación con as: 'user', forzamos el JSON en minúscula.
+                    // Renombramos la columna 'username' a 'name' usando sintaxis de alias.
                     model: User,
-                    attributes: ['id', 'username', 'profileImage'],
+                    as: 'user',
+                    attributes: ['id', ['username', 'name'], 'profileImage'],
                 },
                 {
                     model: Service,
