@@ -50,21 +50,38 @@ export const getReviewsByUserId = async (req, res) => {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        // Fetch reviews with service details
+        // Fetch reviews with author and service details
         const reviews = await Review.findAll({
             where: { user_id: id },
             include: [
-                { model: Service, attributes: ['id', 'title', 'description', 'categoria', 'image_url'] },
+                { model: User,    attributes: ['id', 'username', 'email'] },
+                { model: Service, attributes: ['id', 'title', 'categoria'] },
             ],
+        });
+
+        const formattedReviews = reviews.map((review) => {
+            const r = review.toJSON();
+            return {
+                id:      r.id,
+                rating:  r.rating,
+                comment: r.comment,
+                date:    r.date,
+                author: r.User
+                    ? { id: r.User.id, name: r.User.username, email: r.User.email }
+                    : null,
+                service: r.Service
+                    ? { id: r.Service.id, title: r.Service.title, categoria: r.Service.categoria }
+                    : null,
+            };
         });
 
         res.json({
             user: {
                 id: user.id,
-                username: user.username,
+                name: user.username,
                 email: user.email,
             },
-            reviews,
+            reviews: formattedReviews,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
