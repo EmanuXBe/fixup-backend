@@ -91,7 +91,7 @@ export const getUserById = async (req, res) => {
         if (!isValidFirebaseUid(id)) {
             return res.status(400).json({
                 message: 'El ID proporcionado no es un UID de Firebase válido. ' +
-                         'Debe ser alfanumérico y tener entre 20 y 128 caracteres.',
+                    'Debe ser alfanumérico y tener entre 20 y 128 caracteres.',
             });
         }
 
@@ -145,7 +145,7 @@ export const getReviewsByUserId = async (req, res) => {
         if (!isValidFirebaseUid(id)) {
             return res.status(400).json({
                 message: 'El ID proporcionado no es un UID de Firebase válido. ' +
-                         'Debe ser alfanumérico y tener entre 20 y 128 caracteres.',
+                    'Debe ser alfanumérico y tener entre 20 y 128 caracteres.',
             });
         }
 
@@ -189,14 +189,14 @@ export const getReviewsByUserId = async (req, res) => {
         const formattedReviews = reviews.map((review) => {
             const r = review.toJSON();
             return {
-                id:      r.id,
-                rating:  r.rating,
+                id: r.id,
+                rating: r.rating,
                 comment: r.comment,
-                date:    r.date,
+                date: r.date,
                 author: r.User
                     ? {
-                        id:           r.User.id,
-                        name:         r.User.username,
+                        id: r.User.id,
+                        name: r.User.username,
                         profileImage: r.User.profileImage || null,
                     }
                     : null,
@@ -213,14 +213,108 @@ export const getReviewsByUserId = async (req, res) => {
          */
         res.json({
             user: {
-                id:           user.id,
-                name:         user.username,
-                email:        user.email,
+                id: user.id,
+                name: user.username,
+                email: user.email,
                 profileImage: user.profileImage || null,
             },
             reviews: formattedReviews,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * POST /api/users — Sincronizar usuario recién creado de Firebase a PostgreSQL
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * PROPÓSITO:
+ * Endpoint llamado por la aplicación móvil (o el frontend) inmediatamente después
+ * de que un usuario se registra exitosamente en Firebase Auth.
+ * 
+ * PATRÓN DE DELEGACIÓN DE AUTENTICACIÓN (Delegated Authentication):
+ * -------------------------------------------------------------------
+ * - Identity Provider (IdP): Firebase maneja contraseñas, verificación de emails 
+ *   y tokens de autenticación.
+ * - Domain Profile Store: PostgreSQL actúa como el almacén del perfil de dominio, 
+ *   manteniendo la información estructural del usuario para poder relacionarlo
+ *   dentro de nuestro ecosistema (Reseñas, Servicios, Favoritos, etc.).
+ * 
+ * IMPORTANCIA DE ESTA RUTA:
+ * Si la app móvil registra un usuario en Firebase pero no impacta este endpoint,
+ * el usuario existirá en la nube de GCP pero NO en nuestro backend de Nest/Express.
+ * Esto significa que la ruta GET /api/users/:uid arrojará 404, y cuando el 
+ * usuario intente crear una reseña, fallará el constraint de llave foránea 
+ * porque PostgreSQL no sabrá quién es ese usuario.
+ *
+ * @param {Object} req — req.body con { id (Firebase UID), email, name, profileImage }
+ * @param {Object} res — Respuesta HTTP (201, 200, 400, o 409)
+ */
+export const createUser = async (req, res) => {
+    try {
+        const { id, email, name, profileImage } = req.body;
+
+        /**
+         * 1. Validaciones estructurales de payload
+         */
+        if (!id || !isValidFirebaseUid(id)) {
+            return res.status(400).json({ 
+                message: 'El UID proporcionado (id) es inválido o está vacío. Debe coincidir con un UUID de Firebase válido.' 
+            });
+        }
+
+        if (!email || !name) {
+            return res.status(400).json({ 
+                message: 'El correo electrónico (email) y el nombre (name) son requeridos para inicializar el perfil.' 
+            });
+        }
+
+        /**
+         * 2. Manejo de Conflictos y Concurrencia
+         * Verificamos preventivamente si el UID ya fue registrado, para no intentar
+         * la creación doble y tener un Crash.
+         * Devolver un 409 Conflict con manejo elegante (graceful fallback) permite
+         * que la aplicación móvil sepa que el usuario ya existe pero que no 
+         * debe bloquear su flujo normal (podría iniciar sesión sin problema).
+         */
+        const existingUser = await User.findByPk(id);
+        if (existingUser) {
+            return res.status(409).json({
+                message: 'El perfil de usuario correspondiente a este UID ya está sincronizado en PostgreSQL.',
+                user: existingUser
+            });
+        }
+
+        /**
+         * 3. Sincronización oficial en base de datos PostgreSQL.
+         * Enlazamos el UUID descentralizado (de Firebase) con nuestro ecosistema.
+         */
+        const newUser = await User.create({
+            id,             // Clave primaria, coincidente exacto con UID Firebase
+            email,          // Tomado desde token Firebase o auth form
+            username: name, // Transformar de nombre amigable al esquema username
+            profileImage: profileImage || null
+        });
+
+        // Retornamos 201 Created si la escritura se completa de forma exitosa
+        return res.status(201).json({
+            message: 'El registro inicial se completó correctamente.',
+            user: newUser
+        });
+
+    } catch (error) {
+        /**
+         * Manejo explícito del Unique constraint si el email se repite 
+         * pero bajo un UID distinto (poco común dada la garantía de Firebase, pero defensivo).
+         */
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(409).json({
+                message: 'Otro perfil ya se encuentra registrado con este mismo correo electrónico.'
+            });
+        }
+        
+        return res.status(500).json({ message: error.message });
     }
 };
