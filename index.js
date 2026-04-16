@@ -240,7 +240,7 @@ const startServer = async () => {
          * para proyectos académicos y prototipos.
          */
         if (isProduction) {
-            await sequelize.sync({ alter: true });
+            sequelize.sync({ force: true })
             console.log('✅ Base de datos sincronizada (modo producción: alter).');
         } else {
             await sequelize.sync({ force: true });
