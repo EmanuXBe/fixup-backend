@@ -96,27 +96,16 @@ const formatReview = (review) => {
         rating:  r.rating,
         comment: r.comment,
         date:    r.date,
-        /**
-         * Datos del autor de la reseña.
-         * Se extraen del include de User en la query.
-         * 
-         * NOTA PARA EL DESARROLLADOR DE ANDROID:
-         * Se ha forzado la exportación bajo la clave "user" (minúscula)
-         * para su correcto mapeo en la app, al igual que los atributos
-         * que se exponen. Al definir "as: 'user'" en la relación y la 
-         * query, evitamos la anidación en la clave con inicial en mayúscula.
-         */
+        // Campos de conveniencia para el frontend (acceso directo sin desestructurar)
+        authorName:            r.user?.name          ?? null,
+        authorProfileImageUrl: r.user?.profileImage  ?? null,
         user: r.user
             ? {
                 id:           r.user.id,
                 name:         r.user.name,
-                profileImage: r.user.profileImage || null,
+                profileImage: r.user.profileImage ?? null,
             }
             : null,
-        /**
-         * Datos del servicio reseñado.
-         * Se extraen del include de Service en la query.
-         */
         service: r.Service
             ? { id: r.Service.id, title: r.Service.title, categoria: r.Service.categoria }
             : null,

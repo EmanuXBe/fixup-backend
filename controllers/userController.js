@@ -172,7 +172,11 @@ export const getReviewsByUserId = async (req, res) => {
             include: [
                 {
                     model: User,
-                    attributes: ['id', 'username', 'profileImage'],
+                    // El alias 'user' debe coincidir con el definido en Review.belongsTo(User, { as: 'user' })
+                    // de relations.js. Sin él, Sequelize serializa la asociación bajo 'User' (mayúscula)
+                    // pero el acceso posterior con r.user retorna undefined.
+                    as: 'user',
+                    attributes: ['id', ['username', 'name'], 'profileImage'],
                 },
                 {
                     model: Service,
@@ -182,22 +186,20 @@ export const getReviewsByUserId = async (req, res) => {
             order: [['date', 'DESC']],
         });
 
-        /**
-         * Formateo DTO — Transforma cada review Sequelize al formato
-         * estandarizado que espera el frontend.
-         */
         const formattedReviews = reviews.map((review) => {
             const r = review.toJSON();
             return {
-                id: r.id,
-                rating: r.rating,
+                id:      r.id,
+                rating:  r.rating,
                 comment: r.comment,
-                date: r.date,
-                author: r.User
+                date:    r.date,
+                authorName:            r.user?.name          ?? null,
+                authorProfileImageUrl: r.user?.profileImage  ?? null,
+                user: r.user
                     ? {
-                        id: r.User.id,
-                        name: r.User.username,
-                        profileImage: r.User.profileImage || null,
+                        id:           r.user.id,
+                        name:         r.user.name,
+                        profileImage: r.user.profileImage ?? null,
                     }
                     : null,
                 service: r.Service
