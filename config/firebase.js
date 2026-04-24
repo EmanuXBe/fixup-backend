@@ -3,34 +3,29 @@ import admin from 'firebase-admin';
 /**
  * Inicialización singleton de Firebase Admin SDK.
  *
- * Exporta:
- *   messaging — para enviar notificaciones FCM
- *   db        — cliente Firestore para leer tokens y documentos
+ * Usa FIREBASE_SERVICE_ACCOUNT_BASE64: el serviceAccount.json completo
+ * codificado en base64. Esto evita todos los problemas de escaping de
+ * la private_key al almacenarla como variable de entorno en Render.
  *
- * Variables de entorno requeridas (.env y Render):
- *   FIREBASE_PROJECT_ID
- *   FIREBASE_PRIVATE_KEY_ID
- *   FIREBASE_PRIVATE_KEY   (con \n literales; se reemplazan aquí)
- *   FIREBASE_CLIENT_EMAIL
- *   FIREBASE_CLIENT_ID
+ * Para generar el valor:
+ *   base64 -i serviceAccount.json | tr -d '\n'
  */
-const parsePrivateKey = (raw = '') =>
-    raw
-        .replace(/^["']|["']$/g, '')  // quita comillas si Render las añadió
-        .replace(/\\n/g, '\n');        // convierte \n literal a salto de línea real
-
 if (!admin.apps.length) {
+    const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+
+    if (!b64) {
+        throw new Error(
+            'Falta la variable de entorno FIREBASE_SERVICE_ACCOUNT_BASE64. ' +
+            'Genera el valor con: base64 -i serviceAccount.json | tr -d "\\n"'
+        );
+    }
+
+    const serviceAccount = JSON.parse(
+        Buffer.from(b64, 'base64').toString('utf8')
+    );
+
     admin.initializeApp({
-        credential: admin.credential.cert({
-            type:           'service_account',
-            project_id:     process.env.FIREBASE_PROJECT_ID,
-            private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-            private_key:    parsePrivateKey(process.env.FIREBASE_PRIVATE_KEY),
-            client_email:   process.env.FIREBASE_CLIENT_EMAIL,
-            client_id:      process.env.FIREBASE_CLIENT_ID,
-            auth_uri:       'https://accounts.google.com/o/oauth2/auth',
-            token_uri:      'https://oauth2.googleapis.com/token',
-        }),
+        credential: admin.credential.cert(serviceAccount),
     });
 }
 
