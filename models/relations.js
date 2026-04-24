@@ -2,6 +2,7 @@ import { DataTypes } from 'sequelize';
 import User from './User.js';
 import Service from './Service.js';
 import Review from './Review.js';
+import Like from './Like.js';
 
 /**
  * =============================================================================
@@ -128,6 +129,41 @@ const setRelations = () => {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
     });
+
+    /**
+     * =========================================================================
+     * Relación User ↔ Review (M:N) — vía tabla Like
+     * =========================================================================
+     *
+     * Un usuario puede dar like a muchas reseñas; una reseña puede recibir
+     * likes de muchos usuarios. La tabla Like actúa como tabla de unión
+     * con PK compuesta (user_id, review_id) que garantiza unicidad.
+     *
+     * onDelete: CASCADE en ambas FKs:
+     * - Si se elimina un User → se eliminan sus Likes
+     * - Si se elimina un Review → se eliminan sus Likes
+     */
+    User.belongsToMany(Review, {
+        through: Like,
+        foreignKey: { name: 'user_id', type: DataTypes.STRING(128) },
+        otherKey:   'review_id',
+        as:         'likedReviews',
+        onDelete:   'CASCADE',
+    });
+
+    Review.belongsToMany(User, {
+        through: Like,
+        foreignKey: 'review_id',
+        otherKey:   { name: 'user_id', type: DataTypes.STRING(128) },
+        as:         'likers',
+        onDelete:   'CASCADE',
+    });
+
+    // Relaciones directas de Like para cascade en destroy()
+    Review.hasMany(Like, { foreignKey: 'review_id', onDelete: 'CASCADE' });
+    Like.belongsTo(Review, { foreignKey: 'review_id', onDelete: 'CASCADE' });
+    User.hasMany(Like,   { foreignKey: { name: 'user_id', type: DataTypes.STRING(128) }, onDelete: 'CASCADE' });
+    Like.belongsTo(User, { foreignKey: { name: 'user_id', type: DataTypes.STRING(128) }, onDelete: 'CASCADE' });
 };
 
 export default setRelations;

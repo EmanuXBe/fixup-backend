@@ -320,3 +320,48 @@ export const createUser = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * PATCH /api/users/fcm-token — Registrar o actualizar el token FCM del usuario
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * La app móvil llama a este endpoint inmediatamente después del login para
+ * que el backend pueda enviar notificaciones push al dispositivo correcto.
+ *
+ * El token FCM puede cambiar cuando:
+ *   - El usuario reinstala la app
+ *   - Firebase rota el token automáticamente
+ *   - El usuario inicia sesión en un nuevo dispositivo
+ *
+ * Body: { userId: string (Firebase UID), fcmToken: string }
+ * Respuesta: { message: string }
+ */
+export const updateFcmToken = async (req, res) => {
+    try {
+        const { userId, fcmToken } = req.body;
+
+        if (!userId || !fcmToken) {
+            return res.status(400).json({
+                message: 'Los campos userId y fcmToken son obligatorios.',
+            });
+        }
+
+        if (!isValidFirebaseUid(userId)) {
+            return res.status(400).json({
+                message: 'El userId no es un UID de Firebase válido (alfanumérico, 20-128 chars).',
+            });
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+
+        await user.update({ fcmToken });
+
+        return res.json({ message: 'Token FCM actualizado correctamente.' });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};

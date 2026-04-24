@@ -98,6 +98,18 @@ const User = sequelize.define('User', {
         allowNull: true,
         defaultValue: null,
     },
+
+    /**
+     * Token FCM del dispositivo móvil del usuario.
+     * Se actualiza vía PATCH /api/users/fcm-token cada vez que la app
+     * hace login. Nullable porque el usuario puede no tener sesión activa
+     * o tener notificaciones deshabilitadas.
+     */
+    fcmToken: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: null,
+    },
 }, {
     /**
      * timestamps: false — Decisión de diseño:

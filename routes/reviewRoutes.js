@@ -3,6 +3,7 @@ import {
     createReview,
     getReviewsByService,
     getUserReviews,
+    toggleLike,
     updateReview,
     deleteReview,
 } from '../controllers/reviewController.js';
@@ -17,6 +18,9 @@ router.get('/service/:serviceId', getReviewsByService);
 
 // GET    /api/reviews/user/:userId
 router.get('/user/:userId', getUserReviews);
+
+// POST   /api/reviews/:id/like   — toggle like (crear o eliminar)
+router.post('/:id/like', toggleLike);
 
 // PUT    /api/reviews/:id
 router.put('/:id', updateReview);

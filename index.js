@@ -1,12 +1,15 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import sequelize from './database/database.js';
 import setRelations from './models/relations.js';
 import { loadInitialData } from './initData.js';
+import './config/firebase.js';
 
 import userRoutes from './routes/userRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import notificationRoutes from './routes/notifications.js';
 
 /**
  * =============================================================================
@@ -155,6 +158,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/notifications', notificationRoutes);
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────

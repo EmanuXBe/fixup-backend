@@ -38,49 +38,49 @@ import Review from './models/Review.js';
 const initialUsers = [
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ01',
-        username: 'juan_perez',
+        username: 'Juan Pérez',
         email: 'juan@example.com',
         profileImage: 'https://ui-avatars.com/api/?name=Juan+Perez&background=random',
     },
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ02',
-        username: 'maria_garcia',
+        username: 'María García',
         email: 'maria@example.com',
         profileImage: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=random',
     },
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ03',
-        username: 'carlos_lopez',
+        username: 'Carlos López',
         email: 'carlos@example.com',
         profileImage: 'https://ui-avatars.com/api/?name=Carlos+Lopez&background=random',
     },
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ04',
-        username: 'ana_martinez',
+        username: 'Ana Martínez',
         email: 'ana@example.com',
         profileImage: 'https://ui-avatars.com/api/?name=Ana+Martinez&background=random',
     },
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ05',
-        username: 'pedro_sanchez',
+        username: 'Pedro Sánchez',
         email: 'pedro@example.com',
         profileImage: 'https://ui-avatars.com/api/?name=Pedro+Sanchez&background=random',
     },
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ06',
-        username: 'lucia_fernandez',
+        username: 'Lucía Fernández',
         email: 'lucia@example.com',
-        profileImage: null, // Usuario sin foto de perfil — el frontend muestra avatar genérico
+        profileImage: null,
     },
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ07',
-        username: 'diego_ramirez',
+        username: 'Diego Ramírez',
         email: 'diego@example.com',
         profileImage: 'https://ui-avatars.com/api/?name=Diego+Ramirez&background=random',
     },
     {
         id: 'aBcDeFgHiJkLmNoPqRsTuVwXyZ08',
-        username: 'sofia_torres',
+        username: 'Sofía Torres',
         email: 'sofia@example.com',
         profileImage: 'https://ui-avatars.com/api/?name=Sofia+Torres&background=random',
     },
@@ -93,34 +93,34 @@ const initialUsers = [
  */
 const initialServices = [
     {
-        title: 'Kitchen Remodel',
-        description: 'Complete cabinet, countertop and lighting renovation.',
+        title: 'Remodelación de Cocina',
+        description: 'Renovación completa de gabinetes, mesones e iluminación.',
         image_url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800',
-        categoria: 'Kitchen',
+        categoria: 'Cocina',
     },
     {
-        title: 'Interior Painting',
-        description: 'Professional painting service for all rooms.',
+        title: 'Pintura Interior',
+        description: 'Servicio de pintura profesional para todas las habitaciones.',
         image_url: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800',
-        categoria: 'Walls',
+        categoria: 'Paredes',
     },
     {
-        title: 'Flooring Installation',
-        description: 'Wood, laminate or tile flooring installation.',
+        title: 'Instalación de Pisos',
+        description: 'Instalación de pisos en madera, laminado o cerámica.',
         image_url: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?w=800',
-        categoria: 'Floors',
+        categoria: 'Pisos',
     },
     {
-        title: 'Bathroom Remodel',
-        description: 'Upgrade of fixtures, tiles and faucets.',
+        title: 'Remodelación de Baño',
+        description: 'Actualización de griferías, baldosas y accesorios.',
         image_url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800',
-        categoria: 'Bathroom',
+        categoria: 'Baño',
     },
     {
-        title: 'General Electrical',
-        description: 'Inspection and upgrade of electrical systems.',
+        title: 'Electricidad General',
+        description: 'Inspección y mejora de instalaciones eléctricas.',
         image_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800',
-        categoria: 'Electrical',
+        categoria: 'Eléctrico',
     },
 ];
 
