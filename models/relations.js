@@ -120,6 +120,7 @@ const setRelations = () => {
     });
 
     Review.belongsTo(Service, {
+        as: 'service',
         foreignKey: {
             name: 'service_id',
             allowNull: false,

@@ -90,25 +90,14 @@ const isValidFirebaseUid = (uid) => {
  * @returns {Object} — DTO formateado para respuesta JSON
  */
 const formatReview = (review) => {
-    const r = review.toJSON();
+    // Usamos get({ plain: true }) o toJSON() para obtener el objeto plano
+    const r = review.get ? review.get({ plain: true }) : (review.toJSON ? review.toJSON() : review);
+    
     return {
-        id:      r.id,
-        rating:  r.rating,
-        comment: r.comment,
-        date:    r.date,
-        // Campos de conveniencia para el frontend (acceso directo sin desestructurar)
-        authorName:            r.user?.name          ?? null,
-        authorProfileImageUrl: r.user?.profileImage  ?? null,
-        user: r.user
-            ? {
-                id:           r.user.id,
-                name:         r.user.name,
-                profileImage: r.user.profileImage ?? null,
-            }
-            : null,
-        service: r.Service
-            ? { id: r.Service.id, title: r.Service.title, categoria: r.Service.categoria }
-            : null,
+        ...r,
+        authorName: r.user?.name || 'Usuario desconocido',
+        serviceTitle: r.service?.title || 'Servicio eliminado',
+        authorProfileImage: r.user?.profileImage || null
     };
 };
 
@@ -250,16 +239,13 @@ export const getReviewsByService = async (req, res) => {
              */
             include: [
                 {
-                    // EAGER LOADING EXPLÍCITO:
-                    // Al incluir el modelo User en la misma query en lugar de consultar
-                    // a posteriori las reseñas, evitamos el problema de consultas N+1.
                     model: User,
-                    as: 'user', // Fuerza que en el JSON Serialize de Sequelize se exponga como 'user' en minúscula
-                    // Renombramos la columna username a name usando el alias de Sequelize
+                    as: 'user',
                     attributes: ['id', ['username', 'name'], 'profileImage'],
                 },
                 {
                     model: Service,
+                    as: 'service',
                     attributes: ['id', 'title', 'categoria'],
                 },
             ],
@@ -352,15 +338,13 @@ export const getUserReviews = async (req, res) => {
             where: { user_id: userId },
             include: [
                 {
-                    // EAGER LOADING EXPLÍCITO:
-                    // Al incluir la relación con as: 'user', forzamos el JSON en minúscula.
-                    // Renombramos la columna 'username' a 'name' usando sintaxis de alias.
                     model: User,
                     as: 'user',
                     attributes: ['id', ['username', 'name'], 'profileImage'],
                 },
                 {
                     model: Service,
+                    as: 'service',
                     attributes: ['id', 'title', 'categoria'],
                 },
             ],
