@@ -10,6 +10,7 @@ import userRoutes from './routes/userRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import notificationRoutes from './routes/notifications.js';
+import propertyRoutes from './routes/propertyRoutes.js';
 
 /**
  * =============================================================================
@@ -159,6 +160,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/notifications', notificationRoutes);
+app.use('/api/properties', propertyRoutes);
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
