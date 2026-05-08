@@ -12,13 +12,18 @@ const router = express.Router();
  * (el cliente Android lo renovará solo en el próximo login).
  * Cualquier otro error se re-lanza para que el handler lo capture como 500.
  */
+/**
+ * Returns true if sent, false if token was stale (unregistered).
+ * Any other FCM error is re-thrown.
+ */
 const sendNotification = async (token, notification, data) => {
     try {
         await messaging.send({ token, notification, data, android: { priority: 'high' } });
+        return true;
     } catch (err) {
         if (err.code === 'messaging/registration-token-not-registered') {
             console.warn('FCM token desactualizado, ignorando:', token.slice(0, 20) + '…');
-            return; // no relanzar — el cliente lo renovará
+            return false;
         }
         throw err;
     }
@@ -67,7 +72,7 @@ router.post('/like', async (req, res) => {
         }
 
         // 4. Enviar notificación FCM
-        await sendNotification(
+        const fcmSent = await sendNotification(
             fcmToken,
             {
                 title: '¡A alguien le gustó tu reseña!',
@@ -80,6 +85,10 @@ router.post('/like', async (req, res) => {
                 targetUserId: String(targetUserId),
             },
         );
+
+        if (!fcmSent) {
+            return res.status(200).json({ message: 'FCM token vencido o no registrado. El dispositivo debe renovarlo.' });
+        }
 
         // 5. Persistir notificación en Firestore (el backend es la fuente de verdad,
         //    no el cliente Android, para que funcione incluso con la app cerrada)
@@ -140,7 +149,7 @@ router.post('/follow', async (req, res) => {
         }
 
         // 3. Enviar notificación FCM
-        await sendNotification(
+        const fcmSent = await sendNotification(
             fcmToken,
             {
                 title: '¡Tienes un nuevo seguidor!',
@@ -151,6 +160,10 @@ router.post('/follow', async (req, res) => {
                 targetUserId: String(targetUserId),
             },
         );
+
+        if (!fcmSent) {
+            return res.status(200).json({ message: 'FCM token vencido o no registrado. El dispositivo debe renovarlo.' });
+        }
 
         // 4. Persistir notificación en Firestore
         try {
