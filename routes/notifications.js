@@ -29,55 +29,44 @@ const sendNotification = async (token, notification, data) => {
 // =============================================================================
 
 /**
- * El cliente Android llama a este endpoint después de escribir
- * reviews/{reviewId}/likes/{likerId} en Firestore.
+ * El cliente Android llama a este endpoint después de dar like a una reseña.
  *
- * Body: { reviewId: string, likerId: string, likerName: string }
+ * Body: { reviewId: string, likerId: string, likerName: string, targetUserId: string }
  *
  * Flujo:
- *   1. Leer reviews/{reviewId} → obtener userId del dueño
- *   2. Si likerId === userId → el dueño se dio like a sí mismo, no notificar
- *   3. Leer users/{userId} → obtener fcmToken
+ *   1. Usar targetUserId del body (dueño de la reseña, ya resuelto por el cliente)
+ *   2. Si likerId === targetUserId → el dueño se dio like a sí mismo, no notificar
+ *   3. Leer users/{targetUserId} en Firestore → obtener fcmToken
  *   4. Si no hay token → 200 silencioso
  *   5. Enviar FCM con type: "LIKE_EVENT"
  */
 router.post('/like', async (req, res) => {
     try {
-        const { reviewId, likerId, likerName } = req.body;
+        const { reviewId, likerId, likerName, targetUserId } = req.body;
 
-        if (!reviewId || !likerId || !likerName) {
-            return res.status(400).json({ message: 'reviewId, likerId y likerName son obligatorios.' });
+        if (!reviewId || !likerId || !likerName || !targetUserId) {
+            return res.status(400).json({ message: 'reviewId, likerId, likerName y targetUserId son obligatorios.' });
         }
 
-        // 1. Leer la review en Firestore
-        const reviewSnap = await db.collection('reviews').doc(reviewId).get();
-        if (!reviewSnap.exists) {
-            return res.status(404).json({ message: `Review '${reviewId}' no encontrada en Firestore.` });
-        }
-
-        const ownerId = reviewSnap.data().userId;
-
-        // 2. No notificar si el autor se da like a sí mismo
-        if (likerId === ownerId) {
+        // 1. No notificar si el autor se da like a sí mismo
+        if (likerId === targetUserId) {
             return res.status(200).json({ message: 'Self-like ignorado, no se envía notificación.' });
         }
 
-        // 3. Leer el usuario dueño de la review
-        const userSnap = await db.collection('users').doc(ownerId).get();
+        // 2. Leer el usuario dueño de la review en Firestore (donde la app guarda el fcmToken)
+        const userSnap = await db.collection('users').doc(targetUserId).get();
         if (!userSnap.exists) {
-            return res.status(404).json({ message: `Usuario '${ownerId}' no encontrado en Firestore.` });
+            return res.status(404).json({ message: `Usuario '${targetUserId}' no encontrado en Firestore.` });
         }
 
         const fcmToken = userSnap.data().fcmToken;
 
-        // 4. Sin token → respuesta silenciosa 200
+        // 3. Sin token → respuesta silenciosa 200
         if (!fcmToken) {
             return res.status(200).json({ message: 'Usuario sin fcmToken registrado, notificación omitida.' });
         }
 
-        const likesCount = String(reviewSnap.data().likesCount ?? 0);
-
-        // 5. Enviar notificación FCM
+        // 4. Enviar notificación FCM
         await sendNotification(
             fcmToken,
             {
@@ -88,15 +77,14 @@ router.post('/like', async (req, res) => {
                 type:         'LIKE_EVENT',
                 reviewId:     String(reviewId),
                 likerName:    String(likerName),
-                likesCount,
-                targetUserId: String(ownerId),
+                targetUserId: String(targetUserId),
             },
         );
 
-        // 6. Persistir notificación en Firestore (el backend es la fuente de verdad,
+        // 5. Persistir notificación en Firestore (el backend es la fuente de verdad,
         //    no el cliente Android, para que funcione incluso con la app cerrada)
         try {
-            await db.collection('users').doc(ownerId).collection('notifications').add({
+            await db.collection('users').doc(targetUserId).collection('notifications').add({
                 title:           '¡A alguien le gustó tu reseña!',
                 message:         `${likerName} le dio like a tu reseña.`,
                 date:            new Date().toISOString(),
