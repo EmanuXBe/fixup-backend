@@ -75,6 +75,8 @@ router.post('/like', async (req, res) => {
             return res.status(200).json({ message: 'Usuario sin fcmToken registrado, notificación omitida.' });
         }
 
+        const likesCount = String(reviewSnap.data().likesCount ?? 0);
+
         // 5. Enviar notificación FCM
         await sendNotification(
             fcmToken,
@@ -82,8 +84,29 @@ router.post('/like', async (req, res) => {
                 title: '¡A alguien le gustó tu reseña!',
                 body:  `${likerName} le dio like a tu reseña.`,
             },
-            { type: 'LIKE_EVENT' },
+            {
+                type:         'LIKE_EVENT',
+                reviewId:     String(reviewId),
+                likerName:    String(likerName),
+                likesCount,
+                targetUserId: String(ownerId),
+            },
         );
+
+        // 6. Persistir notificación en Firestore (el backend es la fuente de verdad,
+        //    no el cliente Android, para que funcione incluso con la app cerrada)
+        try {
+            await db.collection('users').doc(ownerId).collection('notifications').add({
+                title:           '¡A alguien le gustó tu reseña!',
+                message:         `${likerName} le dio like a tu reseña.`,
+                date:            new Date().toISOString(),
+                isRead:          false,
+                actionType:      null,
+                profileImageUrl: null,
+            });
+        } catch (fsErr) {
+            console.warn('No se pudo escribir notificación LIKE en Firestore:', fsErr.message);
+        }
 
         return res.status(200).json({ message: 'Notificación LIKE_EVENT enviada.' });
     } catch (error) {
@@ -135,8 +158,25 @@ router.post('/follow', async (req, res) => {
                 title: '¡Tienes un nuevo seguidor!',
                 body:  `${followerName} comenzó a seguirte.`,
             },
-            { type: 'FOLLOW_EVENT' },
+            {
+                type:         'FOLLOW_EVENT',
+                targetUserId: String(targetUserId),
+            },
         );
+
+        // 4. Persistir notificación en Firestore
+        try {
+            await db.collection('users').doc(targetUserId).collection('notifications').add({
+                title:           '¡Tienes un nuevo seguidor!',
+                message:         `${followerName} comenzó a seguirte.`,
+                date:            new Date().toISOString(),
+                isRead:          false,
+                actionType:      null,
+                profileImageUrl: null,
+            });
+        } catch (fsErr) {
+            console.warn('No se pudo escribir notificación FOLLOW en Firestore:', fsErr.message);
+        }
 
         return res.status(200).json({ message: 'Notificación FOLLOW_EVENT enviada.' });
     } catch (error) {
