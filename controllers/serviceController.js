@@ -1,44 +1,43 @@
 import Service from '../models/Service.js';
+import { AppError } from '../middlewares/errorMiddleware.js';
 
 /**
  * GET /api/services — Returns all services.
  */
-export const getServices = async (req, res) => {
+export const getServices = async (req, res, next) => {
     try {
         const services = await Service.findAll();
         res.json(services);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 /**
  * GET /api/services/:id — Returns a single service by ID.
  */
-export const getServiceById = async (req, res) => {
+export const getServiceById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const service = await Service.findByPk(id);
         if (!service) {
-            return res.status(404).json({ message: 'Service not found' });
+            throw new AppError('Service not found', 404, 'SERVICE_NOT_FOUND');
         }
         res.json(service);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 /**
  * POST /api/services — Creates a new service.
- * Body: { title, description, image_url, categoria }
- * The client uploads the image to Firebase Storage and sends the resulting URL.
  */
-export const createService = async (req, res) => {
+export const createService = async (req, res, next) => {
     try {
         const { title, description, image_url, categoria } = req.body;
 
         if (!title) {
-            return res.status(400).json({ message: 'The title field is required' });
+            throw new AppError('The title field is required', 400, 'MISSING_TITLE');
         }
 
         const newService = await Service.create({
@@ -48,8 +47,11 @@ export const createService = async (req, res) => {
             categoria: categoria ?? null,
         });
 
-        res.status(201).json(newService);
+        res.status(201).json({
+            status: 'success',
+            data: newService
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };

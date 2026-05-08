@@ -11,6 +11,8 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import notificationRoutes from './routes/notifications.js';
 import propertyRoutes from './routes/propertyRoutes.js';
+import { errorHandler } from './middlewares/errorMiddleware.js';
+
 
 /**
  * =============================================================================
@@ -161,6 +163,10 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/api/properties', propertyRoutes);
+
+// Manejador de errores centralizado (DEBE ir después de todas las rutas)
+app.use(errorHandler);
+
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────

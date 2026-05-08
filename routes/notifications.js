@@ -1,5 +1,7 @@
 import express from 'express';
 import { messaging, db } from '../config/firebase.js';
+import { validateFirebaseToken } from '../middlewares/authMiddleware.js';
+import { AppError } from '../middlewares/errorMiddleware.js';
 
 const router = express.Router();
 
@@ -7,15 +9,6 @@ const router = express.Router();
 // HELPER
 // =============================================================================
 
-/**
- * Envía un mensaje FCM y absorbe el error si el token ya no está registrado
- * (el cliente Android lo renovará solo en el próximo login).
- * Cualquier otro error se re-lanza para que el handler lo capture como 500.
- */
-/**
- * Returns true if sent, false if token was stale (unregistered).
- * Any other FCM error is re-thrown.
- */
 const sendNotification = async (token, notification, data) => {
     try {
         await messaging.send({ token, notification, data, android: { priority: 'high' } });
@@ -29,49 +22,36 @@ const sendNotification = async (token, notification, data) => {
     }
 };
 
+// Rutas protegidas
+router.use(validateFirebaseToken);
+
 // =============================================================================
 // POST /notifications/like
 // =============================================================================
 
-/**
- * El cliente Android llama a este endpoint después de dar like a una reseña.
- *
- * Body: { reviewId: string, likerId: string, likerName: string, targetUserId: string }
- *
- * Flujo:
- *   1. Usar targetUserId del body (dueño de la reseña, ya resuelto por el cliente)
- *   2. Si likerId === targetUserId → el dueño se dio like a sí mismo, no notificar
- *   3. Leer users/{targetUserId} en Firestore → obtener fcmToken
- *   4. Si no hay token → 200 silencioso
- *   5. Enviar FCM con type: "LIKE_EVENT"
- */
-router.post('/like', async (req, res) => {
+router.post('/like', async (req, res, next) => {
     try {
         const { reviewId, likerId, likerName, targetUserId } = req.body;
 
         if (!reviewId || !likerId || !likerName || !targetUserId) {
-            return res.status(400).json({ message: 'reviewId, likerId, likerName y targetUserId son obligatorios.' });
+            throw new AppError('reviewId, likerId, likerName y targetUserId son obligatorios.', 400, 'MISSING_FIELDS');
         }
 
-        // 1. No notificar si el autor se da like a sí mismo
         if (likerId === targetUserId) {
-            return res.status(200).json({ message: 'Self-like ignorado, no se envía notificación.' });
+            return res.status(200).json({ status: 'success', message: 'Self-like ignorado.' });
         }
 
-        // 2. Leer el usuario dueño de la review en Firestore (donde la app guarda el fcmToken)
         const userSnap = await db.collection('users').doc(targetUserId).get();
         if (!userSnap.exists) {
-            return res.status(404).json({ message: `Usuario '${targetUserId}' no encontrado en Firestore.` });
+            throw new AppError(`Usuario '${targetUserId}' no encontrado en Firestore.`, 404, 'USER_NOT_FOUND');
         }
 
         const fcmToken = userSnap.data().fcmToken;
 
-        // 3. Sin token → respuesta silenciosa 200
         if (!fcmToken) {
-            return res.status(200).json({ message: 'Usuario sin fcmToken registrado, notificación omitida.' });
+            return res.status(200).json({ status: 'success', message: 'Usuario sin fcmToken.' });
         }
 
-        // 4. Enviar notificación FCM
         const fcmSent = await sendNotification(
             fcmToken,
             {
@@ -87,11 +67,9 @@ router.post('/like', async (req, res) => {
         );
 
         if (!fcmSent) {
-            return res.status(200).json({ message: 'FCM token vencido o no registrado. El dispositivo debe renovarlo.' });
+            return res.status(200).json({ status: 'success', message: 'FCM token vencido.' });
         }
 
-        // 5. Persistir notificación en Firestore (el backend es la fuente de verdad,
-        //    no el cliente Android, para que funcione incluso con la app cerrada)
         try {
             await db.collection('users').doc(targetUserId).collection('notifications').add({
                 title:           '¡A alguien le gustó tu reseña!',
@@ -105,10 +83,9 @@ router.post('/like', async (req, res) => {
             console.warn('No se pudo escribir notificación LIKE en Firestore:', fsErr.message);
         }
 
-        return res.status(200).json({ message: 'Notificación LIKE_EVENT enviada.' });
+        return res.status(200).json({ status: 'success', message: 'Notificación LIKE_EVENT enviada.' });
     } catch (error) {
-        console.error('Error en /notifications/like:', error);
-        return res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 
@@ -116,39 +93,25 @@ router.post('/like', async (req, res) => {
 // POST /notifications/follow
 // =============================================================================
 
-/**
- * El cliente Android llama a este endpoint después de ejecutar toggleFollowUser()
- * cuando el resultado es un FOLLOW (no un unfollow).
- *
- * Body: { targetUserId: string, followerName: string }
- *
- * Flujo:
- *   1. Leer users/{targetUserId} → obtener fcmToken
- *   2. Si no hay token → 200 silencioso
- *   3. Enviar FCM con type: "FOLLOW_EVENT"
- */
-router.post('/follow', async (req, res) => {
+router.post('/follow', async (req, res, next) => {
     try {
         const { targetUserId, followerName } = req.body;
 
         if (!targetUserId || !followerName) {
-            return res.status(400).json({ message: 'targetUserId y followerName son obligatorios.' });
+            throw new AppError('targetUserId y followerName son obligatorios.', 400, 'MISSING_FIELDS');
         }
 
-        // 1. Leer el usuario destino
         const userSnap = await db.collection('users').doc(targetUserId).get();
         if (!userSnap.exists) {
-            return res.status(404).json({ message: `Usuario '${targetUserId}' no encontrado en Firestore.` });
+            throw new AppError(`Usuario '${targetUserId}' no encontrado en Firestore.`, 404, 'USER_NOT_FOUND');
         }
 
         const fcmToken = userSnap.data().fcmToken;
 
-        // 2. Sin token → respuesta silenciosa 200
         if (!fcmToken) {
-            return res.status(200).json({ message: 'Usuario sin fcmToken registrado, notificación omitida.' });
+            return res.status(200).json({ status: 'success', message: 'Usuario sin fcmToken.' });
         }
 
-        // 3. Enviar notificación FCM
         const fcmSent = await sendNotification(
             fcmToken,
             {
@@ -162,10 +125,9 @@ router.post('/follow', async (req, res) => {
         );
 
         if (!fcmSent) {
-            return res.status(200).json({ message: 'FCM token vencido o no registrado. El dispositivo debe renovarlo.' });
+            return res.status(200).json({ status: 'success', message: 'FCM token vencido.' });
         }
 
-        // 4. Persistir notificación en Firestore
         try {
             await db.collection('users').doc(targetUserId).collection('notifications').add({
                 title:           '¡Tienes un nuevo seguidor!',
@@ -179,10 +141,9 @@ router.post('/follow', async (req, res) => {
             console.warn('No se pudo escribir notificación FOLLOW en Firestore:', fsErr.message);
         }
 
-        return res.status(200).json({ message: 'Notificación FOLLOW_EVENT enviada.' });
+        return res.status(200).json({ status: 'success', message: 'Notificación FOLLOW_EVENT enviada.' });
     } catch (error) {
-        console.error('Error en /notifications/follow:', error);
-        return res.status(500).json({ message: error.message });
+        next(error);
     }
 });
 

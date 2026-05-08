@@ -7,25 +7,26 @@ import {
     updateReview,
     deleteReview,
 } from '../controllers/reviewController.js';
+import { validateFirebaseToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// POST   /api/reviews
-router.post('/', createReview);
-
-// GET    /api/reviews/service/:serviceId
+/**
+ * RUTAS PÚBLICAS
+ * Cualquiera puede ver las reseñas de un servicio o de un usuario.
+ */
 router.get('/service/:serviceId', getReviewsByService);
-
-// GET    /api/reviews/user/:userId
 router.get('/user/:userId', getUserReviews);
 
-// POST   /api/reviews/:id/like   — toggle like (crear o eliminar)
+/**
+ * RUTAS PROTEGIDAS
+ * Para crear, likear, editar o borrar se requiere un ID Token válido.
+ */
+router.use(validateFirebaseToken);
+
+router.post('/', createReview);
 router.post('/:id/like', toggleLike);
-
-// PUT    /api/reviews/:id
 router.put('/:id', updateReview);
-
-// DELETE /api/reviews/:id
 router.delete('/:id', deleteReview);
 
 export default router;
