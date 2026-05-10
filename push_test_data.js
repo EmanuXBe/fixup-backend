@@ -45,9 +45,9 @@ const testServices = [
 const pushTestData = async () => {
     try {
         console.log('🚀 Iniciando carga de datos de prueba a Firestore...');
-        
+
         const batch = db.batch();
-        const collectionRef = db.collection('services');
+        const collectionRef = db.collection('articles');
 
         testServices.forEach((service) => {
             const docRef = collectionRef.doc(); // Generar ID automático
@@ -59,7 +59,7 @@ const pushTestData = async () => {
         });
 
         await batch.commit();
-        
+
         console.log('✅ ¡Éxito! Los datos han sido empujados a la colección "services" de Firestore.');
         process.exit(0);
     } catch (error) {
