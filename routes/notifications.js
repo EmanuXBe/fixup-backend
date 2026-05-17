@@ -32,6 +32,7 @@ router.use(validateFirebaseToken);
 router.post('/like', async (req, res, next) => {
     try {
         const { reviewId, likerId, likerName, targetUserId } = req.body;
+        let { likerProfileImageUrl } = req.body;
 
         if (!reviewId || !likerId || !likerName || !targetUserId) {
             throw new AppError('reviewId, likerId, likerName y targetUserId son obligatorios.', 400, 'MISSING_FIELDS');
@@ -46,10 +47,38 @@ router.post('/like', async (req, res, next) => {
             throw new AppError(`Usuario '${targetUserId}' no encontrado en Firestore.`, 404, 'USER_NOT_FOUND');
         }
 
+        // Fallback: si el cliente no envió la foto, la resolvemos desde el perfil del liker
+        if (!likerProfileImageUrl) {
+            try {
+                const likerSnap = await db.collection('users').doc(likerId).get();
+                if (likerSnap.exists) {
+                    likerProfileImageUrl = likerSnap.data().profileImageUrl
+                        || likerSnap.data().photoUrl
+                        || null;
+                }
+            } catch (e) {
+                console.warn('No se pudo resolver foto del liker:', e.message);
+            }
+        }
+
         const fcmToken = userSnap.data().fcmToken;
 
         if (!fcmToken) {
             return res.status(200).json({ status: 'success', message: 'Usuario sin fcmToken.' });
+        }
+
+        // FCM data debe ser solo strings; quitamos null y vacíos antes de enviar
+        const fcmData = {
+            type:                  'LIKE',
+            reviewId:              String(reviewId),
+            actorId:               String(likerId),
+            likerId:               String(likerId),
+            likerName:             String(likerName),
+            targetUserId:          String(targetUserId),
+        };
+        if (likerProfileImageUrl) {
+            fcmData.actorProfileImageUrl = String(likerProfileImageUrl);
+            fcmData.likerProfileImageUrl = String(likerProfileImageUrl);
         }
 
         const fcmSent = await sendNotification(
@@ -58,12 +87,7 @@ router.post('/like', async (req, res, next) => {
                 title: '¡A alguien le gustó tu reseña!',
                 body:  `${likerName} le dio like a tu reseña.`,
             },
-            {
-                type:         'LIKE_EVENT',
-                reviewId:     String(reviewId),
-                likerName:    String(likerName),
-                targetUserId: String(targetUserId),
-            },
+            fcmData,
         );
 
         if (!fcmSent) {
@@ -76,8 +100,9 @@ router.post('/like', async (req, res, next) => {
                 message:         `${likerName} le dio like a tu reseña.`,
                 date:            new Date().toISOString(),
                 isRead:          false,
-                actionType:      null,
-                profileImageUrl: null,
+                actionType:      'LIKE',
+                profileImageUrl: likerProfileImageUrl || null,
+                actorId:         likerId,
             });
         } catch (fsErr) {
             console.warn('No se pudo escribir notificación LIKE en Firestore:', fsErr.message);
@@ -95,7 +120,8 @@ router.post('/like', async (req, res, next) => {
 
 router.post('/follow', async (req, res, next) => {
     try {
-        const { targetUserId, followerName } = req.body;
+        const { targetUserId, followerName, followerId } = req.body;
+        let { followerProfileImageUrl } = req.body;
 
         if (!targetUserId || !followerName) {
             throw new AppError('targetUserId y followerName son obligatorios.', 400, 'MISSING_FIELDS');
@@ -106,10 +132,37 @@ router.post('/follow', async (req, res, next) => {
             throw new AppError(`Usuario '${targetUserId}' no encontrado en Firestore.`, 404, 'USER_NOT_FOUND');
         }
 
+        // Resolver foto del seguidor si no vino en el body
+        if (!followerProfileImageUrl && followerId) {
+            try {
+                const followerSnap = await db.collection('users').doc(followerId).get();
+                if (followerSnap.exists) {
+                    followerProfileImageUrl = followerSnap.data().profileImageUrl
+                        || followerSnap.data().photoUrl
+                        || null;
+                }
+            } catch (e) {
+                console.warn('No se pudo resolver foto del seguidor:', e.message);
+            }
+        }
+
         const fcmToken = userSnap.data().fcmToken;
 
         if (!fcmToken) {
             return res.status(200).json({ status: 'success', message: 'Usuario sin fcmToken.' });
+        }
+
+        const fcmData = {
+            type:         'FOLLOW',
+            targetUserId: String(targetUserId),
+        };
+        if (followerId) {
+            fcmData.actorId = String(followerId);
+            fcmData.followerId = String(followerId);
+        }
+        if (followerProfileImageUrl) {
+            fcmData.actorProfileImageUrl = String(followerProfileImageUrl);
+            fcmData.followerProfileImageUrl = String(followerProfileImageUrl);
         }
 
         const fcmSent = await sendNotification(
@@ -118,10 +171,7 @@ router.post('/follow', async (req, res, next) => {
                 title: '¡Tienes un nuevo seguidor!',
                 body:  `${followerName} comenzó a seguirte.`,
             },
-            {
-                type:         'FOLLOW_EVENT',
-                targetUserId: String(targetUserId),
-            },
+            fcmData,
         );
 
         if (!fcmSent) {
@@ -134,8 +184,9 @@ router.post('/follow', async (req, res, next) => {
                 message:         `${followerName} comenzó a seguirte.`,
                 date:            new Date().toISOString(),
                 isRead:          false,
-                actionType:      null,
-                profileImageUrl: null,
+                actionType:      'FOLLOW',
+                profileImageUrl: followerProfileImageUrl || null,
+                actorId:         followerId || null,
             });
         } catch (fsErr) {
             console.warn('No se pudo escribir notificación FOLLOW en Firestore:', fsErr.message);

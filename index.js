@@ -5,6 +5,7 @@ import sequelize from './database/database.js';
 import setRelations from './models/relations.js';
 import { loadInitialData } from './initData.js';
 import './config/firebase.js';
+import { seedFixersIfEmpty } from './initFixers.js';
 
 import userRoutes from './routes/userRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
@@ -268,6 +269,11 @@ const startServer = async () => {
          * porque las tablas se recrean vacías.
          */
         await loadInitialData();
+
+        // ─── PASO 3.5: Sembrar /fixers en Firestore si está vacía ────
+        // Idempotente: no escribe si ya hay datos. Evita depender del cliente
+        // Android (que a veces falla silenciosamente con la regla previa).
+        await seedFixersIfEmpty();
 
         // ─── PASO 4: Iniciar servidor HTTP ──────────────────────────
         /**
